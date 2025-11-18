@@ -32,7 +32,13 @@ async function fetchData() {
     posts = await postsRes.json();
     users = await usersRes.json();
     comments = await commentsRes.json();
-
+    
+    posts = posts.map(post => {
+     if (!post.hasOwnProperty('likes')) {
+        post.likes = 0;
+     }
+     return post;
+    });
     populateAuthors();
 
     renderPosts();
@@ -164,20 +170,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /*--------------лайки----------------*/ 
-document.querySelector(".content").addEventListener('click',(e) =>{
-    if(e.target.classList.contains("like-path")){
-        let idPost = e.target.dataset.idpost;
-        let number = +e.target.closest('.like').querySelector
-('span').innerText  + 1;
-        fetch("http://localhost:3000/posts/" + idPost,{
-            headers:{
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            method: "PATCH",
-            body: JSON.stringify({
-                "likes": number
-            })
-    })
-  }
+document.querySelector(".content").addEventListener('click', (e) => {
+if(e.target.classList.contains("like-path")){
+    let idPost = e.target.dataset.idpost;
+    
+    const post = posts.find(p => p.id == idPost);
+    if (post) {
+     post.likes = (post.likes || 0) + 1;
+    
+     const likeSpan = e.target.closest('.like').querySelector('span');
+     likeSpan.textContent = post.likes;
+    
+     fetch("http://localhost:3000/posts/" + idPost, {
+        headers:{
+         'Accept': 'application/json',
+         'Content-Type': 'application/json'
+        },
+        method: "PATCH",
+        body: JSON.stringify({
+         "likes": post.likes
+        })
+     })
+     .catch((error) => console.log(error));
+    }
+}
 });
