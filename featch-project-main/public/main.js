@@ -179,5 +179,5 @@ document.querySelector(".content").addEventListener('click',(e) =>{
                 "likes": number
             })
     })
-    }
+  }
 });
