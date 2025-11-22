@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "json-server": "^1.0.0-beta.3"
-  },
-  "scripts": {
-  "start": "node index.js",
-  "dev": "your-dev-server-command"
-  }
-}
