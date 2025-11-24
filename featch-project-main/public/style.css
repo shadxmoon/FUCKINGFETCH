@@ -6,12 +6,13 @@
 
 body {
   font-family: Arial, sans-serif;
-  background-color: #bb8cf06c;
+  background-image: url('img.jpg');
+  background-color: #bb8cf03d;
 }
 
 header {
-  background-color: #bb8cf0;
-  color: #f5eeea;
+  background-color: #bb8cf0d5;
+  color:white;
   padding: 1rem;
   text-align: center;
 }
@@ -20,7 +21,8 @@ header {
   margin-top: 10px;
 }
 .create-btn{
-  background-color: #bb8cf0de;
+  background-color: #bb8cf0;
+  color: white;
   margin: 0 auto;
   left: 0;
   border-radius: 5px;
@@ -28,7 +30,7 @@ header {
   padding: 12px 30px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(58, 57, 57, 0.1);
+  box-shadow: 0 3px 10px rgba(229, 201, 255, 0.74);
 }
 .container {
   display: flex;
@@ -38,7 +40,7 @@ header {
 
 .sidebar {
   width: 200px;
-  background-color: #f5eeea;
+  background-color: white;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(58, 57, 57, 0.1);
@@ -72,7 +74,7 @@ header {
 
 .content {
   flex: 1;
-  background-color: #f5eeea;
+  background-color: white;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(58, 57, 57, 0.1);
@@ -88,7 +90,7 @@ header {
   padding: 15px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  background-color: #faefe9;
+  background-color: #f2e9faa1;
     position: relative;
   box-shadow: 5px 0 10px #a282c07a;
 }
@@ -97,7 +99,25 @@ header {
   margin-bottom: 10px;
   line-height: 1.5;
 }
+.post-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 
+.delete-post {
+  background-color:#bb8cf06c;
+  color: #411d6bb2;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.delete-post:hover {
+  background-color: #8e3deb6c;
+}
 .read-more {
   background-color: #bb8cf0de;
   border: none;
@@ -122,13 +142,14 @@ header {
   height: 100%;
   background-color: rgba(0,0,0,0.5);
 }
-
 .modal-content {
-  background-color: #f5eeea;
-  margin: 5% auto;
-  padding: 30px;
+  background-color:white;
+  margin: 3% auto;
+  padding: 25px;
   border-radius: 8px;
   width: 80%;
+  height: 90%;
+  overflow: auto;
   max-width: 600px;
   position: relative;
 }
@@ -170,12 +191,37 @@ header {
   margin: 5px 0;
   font-size: 0.9em;
 }
+h3{
+  text-align: center;
+}
+form{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.create-btn{
+  margin-top: 10px;
+}
+.form-content {
+  max-height: 400px;
+  margin: 10% auto;
+  height: auto;
+  overflow: hidden;
+  width: 60%; 
+}
+input, textarea{
+  background-color: #f2e9faa1;
+  border: none;
+  border-radius: 5px;
+  padding: 15px;
+}
 
 .like {
   position: absolute;
   top:10px;
   right: 10px;
-  color: red;
+  color: #bb8cf0;
+  cursor: pointer;
 }
 
 .btn-like{

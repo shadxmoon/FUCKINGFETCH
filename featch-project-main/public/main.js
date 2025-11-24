@@ -1,197 +1,233 @@
 let posts = [];
 let users = [];
 let comments = [];
-let author
 let currentAuthorFilter = null;
-
 
 const authorList = document.getElementById('author-list');
 const postsContainer = document.getElementById('posts-container');
+
 const modal = document.getElementById('modal');
-const closeModal = document.querySelector('.close');
 const modalTitle = document.getElementById('modal-title');
 const modalBody = document.getElementById('modal-body');
 const commentsList = document.getElementById('comments-list');
+const closeModal = document.querySelector('#modal .close');
+
+const modalForm = document.getElementById('modal-form');
+const formClose = document.querySelector('.form-close');
+const createPostForm = document.getElementById('create-post-form');
 const createBtn = document.querySelector('.create-btn');
-const modalForm = document.querySelector('.modal-form');
-const formClose = document.querySelector('.form-close')
 
 async function fetchData() {
   try {
-    const [postsRes, usersRes, commentsRes, authorsRes] = await Promise.all([
+    const [postsRes, usersRes, commentsRes] = await Promise.all([
       fetch('http://localhost:3000/posts'),
       fetch('http://localhost:3000/users'),
-      fetch('http://localhost:3000/comments'),
-      fetch('')
+      fetch('http://localhost:3000/comments')
     ]);
-
-    if (!postsRes.ok || !usersRes.ok || !commentsRes.ok) {
-      throw new Error('Один из запросов вернул ошибку');
-    }
 
     posts = await postsRes.json();
     users = await usersRes.json();
     comments = await commentsRes.json();
-    
-    posts = posts.map(post => {
-     if (!post.hasOwnProperty('likes')) {
-        post.likes = 0;
-     }
-     return post;
-    });
-    populateAuthors();
 
+    posts = posts.map(p => ({ ...p, likes: p.likes || 0 }));
+
+    populateAuthors();
     renderPosts();
-  } catch (error) {
-    console.error('Ошибка загрузки данных:', error);
-    alert('Не удалось загрузить данные. Убедитесь, что json-server запущен на порту 3000.');
+
+  } catch (err) {
+    console.error("Ошибка загрузки:", err);
   }
 }
 
 function populateAuthors() {
   authorList.innerHTML = '';
 
-  const allItem = document.createElement('li');
-  allItem.textContent = 'Все';
-  allItem.addEventListener('click', () => filterByAuthor(null));
-  authorList.appendChild(allItem);
+  const allLi = document.createElement('li');
+  allLi.textContent = "Все";
+  allLi.classList.add("active");
+  allLi.addEventListener("click", () => filterByAuthor(null));
+  authorList.appendChild(allLi);
 
-  const uniqueLastNames = new Set();
-  posts.forEach(post => {
-    const user = users.find(u => u.id === post.userId);
-    if (user && user.name) {
-      const lastName = user.name.trim().split(' ').pop();
-      uniqueLastNames.add(lastName);
+  const lastNames = new Set();
+
+  posts.forEach(p => {
+    const user = users.find(u => u.id === p.userId);
+    if (user) {
+      const ln = user.name.split(" ").pop();
+      lastNames.add(ln);
     }
   });
 
-  uniqueLastNames.forEach(lastName => {
+  lastNames.forEach(ln => {
     const li = document.createElement('li');
-    li.textContent = lastName;
-    li.addEventListener('click', () => filterByAuthor(lastName));
+    li.textContent = ln;
+    li.addEventListener("click", () => filterByAuthor(ln));
     authorList.appendChild(li);
   });
 }
 
 function filterByAuthor(lastName) {
   currentAuthorFilter = lastName;
-  renderPosts();
 
-  Array.from(authorList.children).forEach(li => {
-    const isActive = (lastName === null && li.textContent === 'Все') ||
-                     (lastName && li.textContent === lastName);
-    li.classList.toggle('active', isActive);
+  [...authorList.children].forEach(li => {
+    li.classList.toggle("active", li.textContent === (lastName || "Все"));
   });
+
+  renderPosts();
 }
 
 function renderPosts() {
   postsContainer.innerHTML = '';
 
-  const filteredPosts = currentAuthorFilter
-    ? posts.filter(post => {
-        const user = users.find(u => u.id === post.userId);
-        return user && user.name.trim().split(' ').pop() === currentAuthorFilter;
+  const filtered = currentAuthorFilter
+    ? posts.filter(p => {
+        const u = users.find(u => u.id === p.userId);
+        return u && u.name.split(" ").pop() === currentAuthorFilter;
       })
     : posts;
 
-  filteredPosts.forEach(post => {
-    const postEl = document.createElement('div');
-    postEl.className = 'post';
-
+  filtered.forEach(post => {
     const user = users.find(u => u.id === post.userId);
-    const lastName = user ? user.name.trim().split(' ').pop() : 'Неизвестно';
+    const lastName = user ? user.name.split(" ").pop() : "Неизвестно";
 
-    postEl.innerHTML = `
+    const div = document.createElement('div');
+    div.className = "post";
+
+    div.innerHTML = `
       <p><strong>Автор:</strong> ${lastName}</p>
-      <p>${post.body.substring(0, 100)}${post.body.length > 100 ? '...' : ''}</p>
+      <p>${post.body.substring(0, 100)}${post.body.length > 100 ? "..." : ""}</p>
+      <div class="post-actions">
       <button class="read-more" data-id="${post.id}">Read More</button>
-      <div class='like'>
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="btn-like bi bi-heart-fill" viewBox="0 0 16 16">
-  <path data-idpost=${post.id} class = "like-path" fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
-      </svg>
-      <span>${post.likes || 0}</span>
+      <button class="delete-post" data-id="${post.id}">Удалить</button>
+      </div>
+      <div class="like">
+        <svg width="16" height="16">
+          <path class="like-path" data-idpost="${post.id}"
+                fill="#bb8cf0"
+                d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 
+                 4.736 3.562-3.248 8 1.314"/>
+        </svg>
+        <span>${post.likes}</span>
       </div>
     `;
 
-    postsContainer.appendChild(postEl);
-  });
-
-  document.querySelectorAll('.read-more').forEach(button => {
-    button.addEventListener('click', (e) => {
-      const postId = parseInt(e.target.dataset.id, 10);
-      showPostModal(postId); 
-    });
+    postsContainer.appendChild(div);
   });
 }
+postsContainer.addEventListener('click', async (e) => {
+  if (e.target.classList.contains('delete-post')) {
+    const id = Number(e.target.dataset.id);
 
+    if (!confirm("Удалить этот пост?")) return;
+
+    try {
+      await fetch(`http://localhost:3000/posts/${id}`, {
+        method: "DELETE"
+      });
+      posts = posts.filter(p => Number(p.id) !== id);
+      renderPosts();
+      populateAuthors();
+    } catch (err) {
+      console.error("Ошибка удаления:", err);
+    }
+  }
+});
 function showPostModal(postId) {
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find(p => Number(p.id) === Number(postId));
   if (!post) return;
-
-  const user = users.find(u => u.id === post.userId);
-  const postComments = comments.filter(c => c.postId === postId);
 
   modalTitle.textContent = post.title;
   modalBody.textContent = post.body;
 
+  const postComments = comments.filter(c => c.postId === postId);
   commentsList.innerHTML = '';
-  postComments.forEach(comment => {
-    const commentEl = document.createElement('li');
-    commentEl.className = 'comment';
-    commentEl.innerHTML = `
-      <p><strong>${comment.name}</strong> (${comment.email})</p>
-      <p>${comment.body}</p>
+
+  postComments.forEach(c => {
+    const li = document.createElement("li");
+    li.className = "comment";
+    li.innerHTML = `
+      <p><strong>${c.name}</strong> (${c.email})</p>
+      <p>${c.body}</p>
     `;
-    commentsList.appendChild(commentEl);
+    commentsList.appendChild(li);
   });
 
-  modal.style.display = 'block';
+  modal.style.display = "block";
 }
 
-if (closeModal) {
-  closeModal.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
-}
-
-window.addEventListener('click', (e) => {
-  if (e.target === modal) {
-    modal.style.display = 'none';
+postsContainer.addEventListener("click", e => {
+  if (e.target.classList.contains("read-more")) {
+    const id = Number(e.target.dataset.id);
+    showPostModal(id);
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!authorList || !postsContainer || !modal) {
-    console.error('Не найдены необходимые элементы в HTML!');
-    return;
+postsContainer.addEventListener("click", e => {
+  if (e.target.classList.contains("like-path")) {
+    const id = Number(e.target.dataset.idpost);
+    const post = posts.find(p => Number(p.id) === id);
+
+    post.likes++;
+    e.target.closest(".like").querySelector("span").textContent = post.likes;
+
+    fetch(`http://localhost:3000/posts/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ likes: post.likes })
+    });
   }
-  fetchData();
 });
 
-
-/*--------------лайки----------------*/ 
-document.querySelector(".content").addEventListener('click', (e) => {
-if(e.target.classList.contains("like-path")){
-    let idPost = e.target.dataset.idpost;
-    
-    const post = posts.find(p => p.id == idPost);
-    if (post) {
-     post.likes = (post.likes || 0) + 1;
-    
-     const likeSpan = e.target.closest('.like').querySelector('span');
-     likeSpan.textContent = post.likes;
-    
-     fetch("http://localhost:3000/posts/" + idPost, {
-        headers:{
-         'Accept': 'application/json',
-         'Content-Type': 'application/json'
-        },
-        method: "PATCH",
-        body: JSON.stringify({
-         "likes": post.likes
-        })
-     })
-     .catch((error) => console.log(error));
-    }
-}
+closeModal.addEventListener("click", () => {
+  modal.style.display = "none";
 });
+
+window.addEventListener("click", e => {
+  if (e.target === modal) modal.style.display = "none";
+});
+
+createBtn.addEventListener("click", () => {
+  modalForm.style.display = "block";
+});
+
+formClose.addEventListener("click", () => {
+  modalForm.style.display = "none";
+});
+
+window.addEventListener("click", e => {
+  if (e.target === modalForm) modalForm.style.display = "none";
+});
+
+createPostForm.addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const title = document.getElementById('new-title').value.trim();
+  const body = document.getElementById('new-body').value.trim();
+  const userId = Number(document.getElementById('new-userId').value);
+
+  const newPost = { title, body, userId, likes: 0 };
+
+   try {
+    const res = await fetch("http://localhost:3000/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newPost)
+    });
+
+    const createdPost = await res.json();
+
+    createdPost.id = Number(createdPost.id);
+
+    posts.push(createdPost);
+
+    renderPosts();
+
+    modalForm.style.display = "none";
+    createPostForm.reset();
+
+  } catch (error) {
+    console.error("Ошибка создания поста:", error);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", fetchData);
